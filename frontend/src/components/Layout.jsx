@@ -1,29 +1,34 @@
 import { Outlet, Link } from 'react-router-dom'
 import { Stethoscope } from 'lucide-react'
+import InteractiveBackground from './InteractiveBackground'
 
 export default function Layout() {
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-[var(--bg-void)] text-[var(--text-primary)] font-sans flex flex-col selection:bg-[var(--border-muted)] selection:text-[var(--text-primary)] relative">
+      {/* Dynamic Background Effect */}
+      <InteractiveBackground />
+
+      <header className="bg-[#12111a]/80 backdrop-blur-md border-b border-[var(--border-subtle)] sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2 text-xl font-bold text-indigo-600">
-            <Stethoscope className="w-6 h-6" />
+          <Link to="/" className="flex items-center gap-2 text-[18px] font-semibold text-[var(--text-primary)]">
+            <Stethoscope className="w-5 h-5 text-[var(--text-secondary)]" />
             Code Therapist
           </Link>
           <nav className="flex space-x-6">
-            <Link to="/diagnose" className="text-gray-600 hover:text-indigo-600 font-medium">Diagnose</Link>
-            <Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 font-medium">Dashboard</Link>
+            <Link to="/diagnose" className="text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Diagnose</Link>
+            <Link to="/dashboard" className="text-[13px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Dashboard</Link>
           </nav>
         </div>
       </header>
       
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <Outlet />
       </main>
       
-      <footer className="bg-white border-t border-gray-200 py-6 text-center text-gray-500 text-sm mt-auto">
+      <footer className="border-t border-[var(--border-subtle)] py-6 text-center text-[var(--text-muted)] text-[11px] mt-auto bg-[#12111a]/80 backdrop-blur-md relative z-10">
         <p>Code Therapist &copy; {new Date().getFullYear()} - Diagnose why you're stuck.</p>
       </footer>
     </div>
   )
 }
+

@@ -45,12 +45,12 @@
 
 ## FEATURE 2 — Landing Page
 
-- [ ] F2.1 — Design and build hero section (tagline, CTA button → `/diagnose`)
-- [ ] F2.2 — Add "How It Works" section (3-step visual: Input → Diagnose → Prescribe)
-- [ ] F2.3 — Add "What Makes It Different" section (Code Therapist vs traditional tools)
-- [ ] F2.4 — Add struggle category showcase (cards for all 8 categories)
-- [ ] F2.5 — Make page fully responsive (mobile + desktop)
-- [ ] F2.6 — Add smooth scroll animations / entrance effects
+- [x] F2.1 — Design and build hero section (tagline, CTA button → `/diagnose`)
+- [x] F2.2 — Add "How It Works" section (3-step visual: Input → Diagnose → Prescribe)
+- [x] F2.3 — Add "What Makes It Different" section (Code Therapist vs traditional tools)
+- [x] F2.4 — Add struggle category showcase (cards for all 8 categories)
+- [x] F2.5 — Make page fully responsive (mobile + desktop)
+- [x] F2.6 — Add smooth scroll animations / entrance effects
 
 **✅ Test**: Landing page renders correctly on desktop and mobile. CTA navigates to `/diagnose`.
 
@@ -58,7 +58,11 @@
 
 ---
 
-## FEATURE 3 — Diagnose Form (Frontend)
+---
+
+---
+
+## FEATURE 3 — Diagnose Form (Frontend) [Anuj]
 
 - [ ] F3.1 — Build the Diagnose Form page at `/diagnose`
 - [ ] F3.2 — Form fields: Error Message (textarea), Code Snippet (code textarea), Goal (text), Technology (text/select), Time Stuck (number input, in minutes), Emotional State (select: Frustrated / Confused / Overwhelmed / Anxious / Calm)
@@ -74,7 +78,7 @@
 
 ---
 
-## FEATURE 4 — Semantic Diagnostic Engine (Backend)
+## FEATURE 4 — Semantic Diagnostic Engine (Backend) [Harsh]
 
 - [ ] F4.1 — Define the 8 struggle categories with detailed descriptions in `services/diagnostic_engine.py`
 - [ ] F4.2 — Load `all-MiniLM-L6-v2` model using `sentence-transformers` on startup
@@ -91,7 +95,7 @@
 
 ---
 
-## FEATURE 5 — FastAPI Diagnose Endpoint
+## FEATURE 5 — FastAPI Diagnose Endpoint [Anuj]
 
 - [ ] F5.1 — Create `POST /diagnose` endpoint in `routes/diagnose.py`
 - [ ] F5.2 — Define `DiagnoseRequest` Pydantic model (error, code, goal, tech, emotion, timeStuck)
@@ -105,7 +109,7 @@
 
 ---
 
-## FEATURE 6 — Gemini Prescription Engine (Backend)
+## FEATURE 6 — Gemini Prescription Engine (Backend) [Harsh]
 
 - [ ] F6.1 — Create `services/prescription_engine.py`
 - [ ] F6.2 — Configure Gemini 2.5 Flash client using `GEMINI_API_KEY`
@@ -122,7 +126,7 @@
 
 ---
 
-## FEATURE 7 — MongoDB Session Storage
+## FEATURE 7 — MongoDB Session Storage [Anuj]
 
 - [ ] F7.1 — Set up MongoDB Atlas cluster and get connection URI
 - [ ] F7.2 — Create `config/database.py` to initialize `pymongo` client using `MONGO_URI`
@@ -138,7 +142,7 @@
 
 ---
 
-## FEATURE 8 — Results Page (Frontend)
+## FEATURE 8 — Results Page (Frontend) [Anuj]
 
 - [ ] F8.1 — Build `/results` page
 - [ ] F8.2 — Display diagnosed category with confidence percentage (badge/pill style)
@@ -155,7 +159,7 @@
 
 ---
 
-## FEATURE 9 — Analytics Dashboard (Frontend)
+## FEATURE 9 — Analytics Dashboard (Frontend) [Harsh]
 
 - [ ] F9.1 — Build `/dashboard` page layout
 - [ ] F9.2 — Fetch data from `GET /sessions` and `GET /sessions/profile`
@@ -173,16 +177,16 @@
 
 ---
 
-## FEATURE 10 — Polish & Integration Testing
+## FEATURE 10 — Polish & Integration Testing [Harsh & Anuj]
 
-- [ ] F10.1 — Full end-to-end flow test: Landing → Form → Results → Dashboard
-- [ ] F10.2 — Check all API error cases are handled gracefully on frontend
-- [ ] F10.3 — Ensure consistent design language across all pages (colors, fonts, spacing)
-- [ ] F10.4 — Add page transitions / loading animations
-- [ ] F10.5 — Test on mobile viewport
-- [ ] F10.6 — Verify MongoDB has at least 5 sample sessions for dashboard demo
-- [ ] F10.7 — Verify Gemini responses are always structured (add fallback parsing if needed)
-- [ ] F10.8 — Final review against `context.md` — verify no MVP boundary was crossed
+- [ ] F10.1 [Harsh] — Full end-to-end flow test: Landing → Form → Results → Dashboard
+- [ ] F10.2 [Harsh] — Check all API error cases are handled gracefully on frontend
+- [ ] F10.3 [Anuj] — Ensure consistent design language across all pages (colors, fonts, spacing)
+- [ ] F10.4 [Harsh] — Add page transitions / loading animations
+- [ ] F10.5 [Anuj] — Test on mobile viewport
+- [ ] F10.6 [Anuj] — Verify MongoDB has at least 5 sample sessions for dashboard demo
+- [ ] F10.7 [Harsh] — Verify Gemini responses are always structured (add fallback parsing if needed)
+- [ ] F10.8 [Harsh & Anuj] — Final review against `context.md` — verify no MVP boundary was crossed
 
 **✅ Test**: Complete walkthrough of the app works flawlessly. Ready for demo.
 
@@ -190,13 +194,13 @@
 
 ---
 
-## FEATURE 11 — Deployment
+## FEATURE 11 — Deployment [Harsh & Anuj]
 
-- [ ] F11.1 — Deploy FastAPI backend to **Render** (set env vars: `MONGO_URI`, `GEMINI_API_KEY`)
-- [ ] F11.2 — Deploy React frontend to **Vercel** (set env var: `VITE_API_URL` → Render backend URL)
-- [ ] F11.3 — Update frontend API base URL to use env variable
-- [ ] F11.4 — Smoke test deployed URLs end-to-end
-- [ ] F11.5 — Add `README.md` with project description, setup instructions, and demo link
+- [ ] F11.1 [Anuj] — Deploy FastAPI backend to **Render** (set env vars: `MONGO_URI`, `GEMINI_API_KEY`)
+- [ ] F11.2 [Anuj] — Deploy React frontend to **Vercel** (set env var: `VITE_API_URL` → Render backend URL)
+- [ ] F11.3 [Anuj] — Update frontend API base URL to use env variable
+- [ ] F11.4 [Harsh & Anuj] — Smoke test deployed URLs end-to-end
+- [ ] F11.5 [Anuj] — Add `README.md` with project description, setup instructions, and demo link
 
 **✅ Test**: Live URL works. Form → diagnosis → results → dashboard flow works on production.
 

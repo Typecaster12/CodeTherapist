@@ -10,3 +10,8 @@
 ## FEATURE 1 — Project Scaffold & Setup
 - **F1.1 to F1.6 (Frontend Setup)**: Initialized Vite+React with Bun, installed Tailwind CSS, React Router, Recharts, Lucide-React, and Axios. Configured Tailwind, set up the folder structure (`pages/`, `components/`), configured routing in `App.jsx`, and created a responsive base layout component with navigation.
 - **F1.7 to F1.11 (Backend Setup)**: Created FastAPI project structure (`routes/`, `services/`, `models/`, `config/`). Installed dependencies (`fastapi`, `uvicorn`, `sentence-transformers`, `pymongo`, `google-generativeai`, `python-dotenv`). Created `.env` schema, configured CORS in `main.py`, and added a `/health` endpoint. Feature 1 is now fully complete.
+
+## FEATURE 2 — Landing Page
+- **F2.1 to F2.6 (Home Page)**: Implemented `DESIGN.md` rules with strict monochrome/grayscale overrides as requested. Updated global CSS variables and base layout. Built `Home.jsx` with Hero section, 3-step How It Works, traditional vs Code Therapist comparison, and categorical pills showcase. UI uses deep void dark mode, subtle borders, and smooth entrance effects.
+- **Interactive Framer Motion Polish**: Added `framer-motion` for dynamic staggered entry transitions, hover/tap micro-interactions, viewport-scroll animations, and a global `InteractiveBackground.jsx` containing a cursor-following spotlight glow, a technical grid layer, and floating ambient particles — all keeping strictly monochrome/grayscale accents.
+

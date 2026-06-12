@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+@layer base {
+  :root {
+    --bg-void: #080710;
+    --bg-surface: #12111a;
+    --bg-surface-elevated: #1a1926;
+    --border-subtle: #1f1e2e;
+    --border-muted: #2d2b3f;
+    --border-focus: #8b8a96;
+    
+    --text-primary: #f7f7f8;
+    --text-secondary: #b4b3c0;
+    --text-muted: #686775;
+    
+    --accent-purple: #8b8a96;
+    --accent-glow: rgba(255, 255, 255, 0.05);
+
+    /* Diagnostic Categories - Monochrome */
+    --cat-syntax: #8a8a8a;
+    --cat-logic: #808080;
+    --cat-conceptual: #757575;
+    --cat-arch: #6b6b6b;
+    --cat-tooling: #616161;
+    --cat-skill: #575757;
+    --cat-overeng: #4d4d4d;
+    --cat-burnout: #424242;
+  }
+  
+  body {
+    background-color: var(--bg-void);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+}
