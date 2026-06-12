@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,13 +14,19 @@ logger = logging.getLogger("code_therapist")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up Code Therapist Backend...")
-    try:
-        init_engine()
-        logger.info("Semantic Diagnostic Engine ready.")
-        init_rag_store()
-        logger.info("RAG Document Store ready.")
-    except Exception as e:
-        logger.error(f"Failed to initialize Diagnostic Engine or RAG: {e}", exc_info=True)
+    
+    # Run heavy initialization in background task to avoid Render port-binding timeouts
+    async def init_task():
+        try:
+            logger.info("Background initialization of ML components started...")
+            await asyncio.to_thread(init_engine)
+            logger.info("Background Semantic Diagnostic Engine ready.")
+            await asyncio.to_thread(init_rag_store)
+            logger.info("Background RAG Document Store ready.")
+        except Exception as e:
+            logger.error(f"Failed to initialize Diagnostic Engine or RAG in background: {e}", exc_info=True)
+
+    asyncio.create_task(init_task())
     yield
     logger.info("Shutting down Code Therapist Backend...")
 

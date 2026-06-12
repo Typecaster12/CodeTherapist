@@ -60,6 +60,17 @@ def create_diagnosis(payload: DiagnoseRequest, current_user: dict = Depends(get_
             "issueText": issue_text,
             "prescription": prescription_result
         }
+    except RuntimeError as re:
+        logger.error(f"Diagnostic engine runtime error: {re}")
+        if "not loaded" in str(re) or "initializing" in str(re):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Diagnostic engine is still initializing. Please try again in a few seconds."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Diagnostic Engine error: {str(re)}"
+        )
     except Exception as e:
         logger.error(f"Error during diagnosis processing: {e}", exc_info=True)
         raise HTTPException(
