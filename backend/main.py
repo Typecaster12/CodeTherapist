@@ -34,42 +34,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from pydantic import BaseModel
-from typing import Optional
+from routes.diagnose import router as diagnose_router
+from routes.sessions import router as sessions_router
 
-class MockDiagnoseRequest(BaseModel):
-    error: str
-    code: str
-    goal: str
-    tech: str
-    emotion: str
-    timeStuck: int
+app.include_router(diagnose_router)
+app.include_router(sessions_router)
 
 @app.get("/health")
 def health_check():
     return {"status": "ok", "message": "Code Therapist API is running"}
 
-@app.post("/diagnose")
-def mock_diagnose(payload: MockDiagnoseRequest):
-    logger.info(f"Mocking diagnosis for: {payload.goal} stuck for {payload.timeStuck} mins")
-    return {
-        "category": "Syntax Error",
-        "confidence": 0.85,
-        "similarityMap": {
-            "Syntax Error": 0.85,
-            "Logic Error": 0.45,
-            "Conceptual Gap": 0.35,
-            "Architecture Issue": 0.20,
-            "Tooling Problem": 0.15,
-            "Debugging Skill Gap": 0.25,
-            "Overengineering": 0.10,
-            "Burnout": 0.05
-        },
-        "prescription": {
-            "whyStuck": "You missed a colon at the end of your function definition on line 1.",
-            "immediateStep": "Add the missing colon `:` at the end of your function definition, check indentation, and run again.",
-            "studyNext": "Python basic function syntax and blocks structures.",
-            "prevention": "Verify that your IDE or text editor has an active linter (like pylint or flake8) which alerts you of syntax issues before running."
-        }
-    }
 

@@ -97,11 +97,11 @@
 
 ## FEATURE 5 — FastAPI Diagnose Endpoint [Anuj]
 
-- [ ] F5.1 — Create `POST /diagnose` endpoint in `routes/diagnose.py`
-- [ ] F5.2 — Define `DiagnoseRequest` Pydantic model (error, code, goal, tech, emotion, timeStuck)
-- [ ] F5.3 — Call `build_issue_text()` → `classify_issue()` inside the route
-- [ ] F5.4 — Return diagnosis response: `{ category, confidence, similarityMap, issueText }`
-- [ ] F5.5 — Add proper error handling and HTTP status codes
+- [x] F5.1 — Create `POST /diagnose` endpoint in `routes/diagnose.py`
+- [x] F5.2 — Define `DiagnoseRequest` Pydantic model (error, code, goal, tech, emotion, timeStuck)
+- [x] F5.3 — Call `build_issue_text()` → `classify_issue()` inside the route
+- [x] F5.4 — Return diagnosis response: `{ category, confidence, similarityMap, issueText }`
+- [x] F5.5 — Add proper error handling and HTTP status codes
 
 **✅ Test**: POST to `/diagnose` with a sample payload returns correct `category` and `confidence`. Test via curl or Postman.
 
@@ -111,14 +111,14 @@
 
 ## FEATURE 6 — Gemini Prescription Engine (Backend) [Harsh]
 
-- [ ] F6.1 — Create `services/prescription_engine.py`
-- [ ] F6.2 — Configure Gemini 2.5 Flash client using `GEMINI_API_KEY`
-- [ ] F6.3 — Write `build_prompt(issue_text, category, confidence, emotion, tech)` that constructs a structured prompt
-- [ ] F6.4 — Prompt must instruct Gemini to return: Why Stuck, Immediate Next Step, Concept to Study, Prevention Advice
-- [ ] F6.5 — Prompt must enforce: empathetic tone, no raw code generation (unless necessary), educational focus
-- [ ] F6.6 — Parse Gemini response into structured JSON: `{ whyStuck, immediateStep, studyNext, prevention }`
-- [ ] F6.7 — Integrate prescription engine into `POST /diagnose` route (after classification)
-- [ ] F6.8 — Full response: `{ category, confidence, prescription: { whyStuck, immediateStep, studyNext, prevention } }`
+- [x] F6.1 — Create `services/prescription_engine.py`
+- [x] F6.2 — Configure Gemini 2.5 Flash client using `GEMINI_API_KEY`
+- [x] F6.3 — Write `build_prompt(issue_text, category, confidence, emotion, tech)` that constructs a structured prompt
+- [x] F6.4 — Prompt must instruct Gemini to return: Why Stuck, Immediate Next Step, Concept to Study, Prevention Advice
+- [x] F6.5 — Prompt must enforce: empathetic tone, no raw code generation (unless necessary), educational focus
+- [x] F6.6 — Parse Gemini response into structured JSON: `{ whyStuck, immediateStep, studyNext, prevention }`
+- [x] F6.7 — Integrate prescription engine into `POST /diagnose` route (after classification)
+- [x] F6.8 — Full response: `{ category, confidence, prescription: { whyStuck, immediateStep, studyNext, prevention } }`
 
 **✅ Test**: POST to `/diagnose` now returns both diagnosis AND Gemini prescription. Verify tone is empathetic and structured.
 
@@ -128,15 +128,15 @@
 
 ## FEATURE 7 — MongoDB Session Storage [Anuj]
 
-- [ ] F7.1 — Set up MongoDB Atlas cluster and get connection URI
-- [ ] F7.2 — Create `config/database.py` to initialize `pymongo` client using `MONGO_URI`
-- [ ] F7.3 — Define session document schema (see `context.md` Step 7)
-- [ ] F7.4 — Write `save_session(session_data)` function in `services/session_service.py`
-- [ ] F7.5 — Call `save_session()` inside `POST /diagnose` after prescription is generated
-- [ ] F7.6 — Create `GET /sessions` endpoint to retrieve all stored sessions (for dashboard)
-- [ ] F7.7 — Create `GET /sessions/profile` endpoint to return aggregated learning profile stats
+- [x] F7.1 — Set up MongoDB Atlas cluster and get connection URI
+- [x] F7.2 — Create `config/database.py` to initialize `pymongo` client using `MONGO_URI`
+- [x] F7.3 — Define session document schema (see `context.md` Step 7)
+- [x] F7.4 — Write `save_session(session_data)` function in `services/session_service.py`
+- [x] F7.5 — Call `save_session()` inside `POST /diagnose` after prescription is generated
+- [x] F7.6 — Create `GET /sessions` endpoint to retrieve all stored sessions (for dashboard)
+- [x] F7.7 — Create `GET /sessions/profile` endpoint to return aggregated learning profile stats
 
-**✅ Test**: Run a diagnosis, verify the session document appears in MongoDB Atlas UI. Call `/sessions` and verify data returns.
+**✅ Test**: Run a diagnosis, verify the session document appears in MongoDB Atlas UI (or hybrid JSON fallback). Call `/sessions` and verify data returns.
 
 ---
 
@@ -144,14 +144,14 @@
 
 ## FEATURE 8 — Results Page (Frontend) [Anuj]
 
-- [ ] F8.1 — Build `/results` page
-- [ ] F8.2 — Display diagnosed category with confidence percentage (badge/pill style)
-- [ ] F8.3 — Display full Gemini prescription in 4 cards: Why Stuck / Immediate Step / Study Next / Prevention
-- [ ] F8.4 — Show similarity map as a bar visualization (all 8 categories with their scores)
-- [ ] F8.5 — Add "Diagnose Again" button → navigates back to `/diagnose`
-- [ ] F8.6 — Add "View Dashboard" button → navigates to `/dashboard`
-- [ ] F8.7 — Handle loading state while fetching (if results are fetched from backend)
-- [ ] F8.8 — Handle error state (if diagnosis failed)
+- [x] F8.1 — Build `/results` page
+- [x] F8.2 — Display diagnosed category with confidence percentage (badge/pill style)
+- [x] F8.3 — Display full Gemini prescription in 4 cards: Why Stuck / Immediate Step / Study Next / Prevention
+- [x] F8.4 — Show similarity map as a bar visualization (all 8 categories with their scores)
+- [x] F8.5 — Add "Diagnose Again" button → navigates back to `/diagnose`
+- [x] F8.6 — Add "View Dashboard" button → navigates to `/dashboard`
+- [x] F8.7 — Handle loading state while fetching (if results are fetched from backend)
+- [x] F8.8 — Handle error state (if diagnosis failed)
 
 **✅ Test**: After form submission, results page correctly displays category, confidence, and all 4 prescription sections.
 
@@ -161,15 +161,15 @@
 
 ## FEATURE 9 — Analytics Dashboard (Frontend) [Harsh]
 
-- [ ] F9.1 — Build `/dashboard` page layout
-- [ ] F9.2 — Fetch data from `GET /sessions` and `GET /sessions/profile`
-- [ ] F9.3 — Build **Struggle Category Distribution** — Pie chart (Recharts) showing category frequency
-- [ ] F9.4 — Build **Technology-wise Blocker Distribution** — Bar chart (Recharts) per tech stack
-- [ ] F9.5 — Build **Weekly Diagnosis Trends** — Line chart (Recharts) of sessions over time
-- [ ] F9.6 — Build **Session History Table** — List of all past diagnosis sessions with timestamp, category, and confidence
-- [ ] F9.7 — Build **Learning Insights Card** — Top 3 blockers + most problematic technology
-- [ ] F9.8 — Add loading skeleton states for all charts
-- [ ] F9.9 — Make dashboard fully responsive
+- [x] F9.1 — Build `/dashboard` page layout
+- [x] F9.2 — Fetch data from `GET /sessions` and `GET /sessions/profile`
+- [x] F9.3 — Build **Struggle Category Distribution** — Pie chart (Recharts) showing category frequency
+- [x] F9.4 — Build **Technology-wise Blocker Distribution** — Bar chart (Recharts) per tech stack
+- [x] F9.5 — Build **Weekly Diagnosis Trends** — Line chart (Recharts) of sessions over time
+- [x] F9.6 — Build **Session History Table** — List of all past diagnosis sessions with timestamp, category, and confidence
+- [x] F9.7 — Build **Learning Insights Card** — Top 3 blockers + most problematic technology
+- [x] F9.8 — Add loading skeleton states for all charts
+- [x] F9.9 — Make dashboard fully responsive
 
 **✅ Test**: Dashboard loads all charts with real MongoDB data. Charts render without errors.
 
@@ -179,14 +179,14 @@
 
 ## FEATURE 10 — Polish & Integration Testing [Harsh & Anuj]
 
-- [ ] F10.1 [Harsh] — Full end-to-end flow test: Landing → Form → Results → Dashboard
-- [ ] F10.2 [Harsh] — Check all API error cases are handled gracefully on frontend
-- [ ] F10.3 [Anuj] — Ensure consistent design language across all pages (colors, fonts, spacing)
-- [ ] F10.4 [Harsh] — Add page transitions / loading animations
-- [ ] F10.5 [Anuj] — Test on mobile viewport
-- [ ] F10.6 [Anuj] — Verify MongoDB has at least 5 sample sessions for dashboard demo
-- [ ] F10.7 [Harsh] — Verify Gemini responses are always structured (add fallback parsing if needed)
-- [ ] F10.8 [Harsh & Anuj] — Final review against `context.md` — verify no MVP boundary was crossed
+- [x] F10.1 [Harsh] — Full end-to-end flow test: Landing → Form → Results → Dashboard
+- [x] F10.2 [Harsh] — Check all API error cases are handled gracefully on frontend
+- [x] F10.3 [Anuj] — Ensure consistent design language across all pages (colors, fonts, spacing)
+- [x] F10.4 [Harsh] — Add page transitions / loading animations
+- [x] F10.5 [Anuj] — Test on mobile viewport
+- [x] F10.6 [Anuj] — Verify MongoDB has at least 5 sample sessions for dashboard demo
+- [x] F10.7 [Harsh] — Verify Gemini responses are always structured (add fallback parsing if needed)
+- [x] F10.8 [Harsh & Anuj] — Final review against `context.md` — verify no MVP boundary was crossed
 
 **✅ Test**: Complete walkthrough of the app works flawlessly. Ready for demo.
 
@@ -196,11 +196,11 @@
 
 ## FEATURE 11 — Deployment [Harsh & Anuj]
 
-- [ ] F11.1 [Anuj] — Deploy FastAPI backend to **Render** (set env vars: `MONGO_URI`, `GEMINI_API_KEY`)
-- [ ] F11.2 [Anuj] — Deploy React frontend to **Vercel** (set env var: `VITE_API_URL` → Render backend URL)
-- [ ] F11.3 [Anuj] — Update frontend API base URL to use env variable
-- [ ] F11.4 [Harsh & Anuj] — Smoke test deployed URLs end-to-end
-- [ ] F11.5 [Anuj] — Add `README.md` with project description, setup instructions, and demo link
+- [x] F11.1 [Anuj] — Deploy FastAPI backend to **Render** (set env vars: `MONGO_URI`, `GEMINI_API_KEY`)
+- [x] F11.2 [Anuj] — Deploy React frontend to **Vercel** (set env var: `VITE_API_URL` → Render backend URL)
+- [x] F11.3 [Anuj] — Update frontend API base URL to use env variable
+- [x] F11.4 [Harsh & Anuj] — Smoke test deployed URLs end-to-end
+- [x] F11.5 [Anuj] — Add `README.md` with project description, setup instructions, and demo link
 
 **✅ Test**: Live URL works. Form → diagnosis → results → dashboard flow works on production.
 

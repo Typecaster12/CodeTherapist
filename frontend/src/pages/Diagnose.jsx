@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Target, Code2, Clock, AlertTriangle, Terminal, Play } from 'lucide-react';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const emotions = [
   { value: 'Frustrated', label: 'Frustrated', desc: 'Blocked by stubborn bugs' },
@@ -12,20 +14,42 @@ const emotions = [
   { value: 'Calm', label: 'Calm', desc: 'Patient but stuck' }
 ];
 
+const FORM_STORAGE_KEY = 'code_therapist_diagnose_draft';
+
+const defaultFormData = {
+  goal: '',
+  tech: '',
+  timeStuck: '',
+  emotion: '',
+  error: '',
+  code: ''
+};
+
+function loadDraft() {
+  try {
+    const saved = localStorage.getItem(FORM_STORAGE_KEY);
+    return saved ? { ...defaultFormData, ...JSON.parse(saved) } : defaultFormData;
+  } catch {
+    return defaultFormData;
+  }
+}
+
 export default function Diagnose() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    goal: '',
-    tech: '',
-    timeStuck: '',
-    emotion: '',
-    error: '',
-    code: ''
-  });
+  const [formData, setFormData] = useState(loadDraft);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [loadingStep, setLoadingStep] = useState(0);
+
+  // Persist draft to localStorage on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+    } catch {
+      // ignore storage errors
+    }
+  }, [formData]);
 
   const steps = [
     'Parsing stack traces & syntax context...',
@@ -102,7 +126,7 @@ export default function Diagnose() {
     }, 1200);
 
     try {
-      const response = await axios.post('http://localhost:8000/diagnose', {
+      const response = await axios.post(`${API_BASE_URL}/diagnose`, {
         goal: formData.goal,
         tech: formData.tech,
         timeStuck: Number(formData.timeStuck),
@@ -112,6 +136,9 @@ export default function Diagnose() {
       });
 
       clearInterval(interval);
+      // Clear saved draft on successful submission
+      try { localStorage.removeItem(FORM_STORAGE_KEY); } catch {}
+      setFormData(defaultFormData);
       // Give a tiny buffer for the transition
       setTimeout(() => {
         navigate('/results', { state: { result: response.data } });
@@ -128,7 +155,12 @@ export default function Diagnose() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-6 relative">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-5xl mx-auto py-6 relative"
+    >
       <AnimatePresence>
         {isSubmitting && (
           <motion.div
@@ -306,6 +338,6 @@ export default function Diagnose() {
           </div>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }
