@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 import logging
 from services.diagnostic_engine import build_issue_text, classify_issue
 from services.prescription_engine import generate_prescription
 from services.session_service import save_session
+from services.auth_service import get_current_user
 
 logger = logging.getLogger("code_therapist")
 
@@ -18,7 +19,7 @@ class DiagnoseRequest(BaseModel):
     timeStuck: int = Field(..., description="Time spent stuck in minutes", ge=1)
 
 @router.post("/diagnose")
-def create_diagnosis(payload: DiagnoseRequest):
+def create_diagnosis(payload: DiagnoseRequest, current_user: dict = Depends(get_current_user)):
     logger.info(f"Received diagnose request for goal='{payload.goal}', tech='{payload.tech}'")
     try:
         # Build issue representation string
@@ -38,6 +39,7 @@ def create_diagnosis(payload: DiagnoseRequest):
         
         # Save session to MongoDB
         session_data = {
+            "user_id": str(current_user["_id"]),
             "error": payload.error,
             "code": payload.code,
             "goal": payload.goal,

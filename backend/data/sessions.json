@@ -302,5 +302,63 @@
     },
     "timestamp": "2026-06-12T16:06:38.415575+00:00",
     "_id": "7912aff9-3751-4d7f-bf7c-0824acbd7e29"
+  },
+  {
+    "user_id": "60d5ec4b1234567890abcdef",
+    "error": "Cannot read properties of undefined (reading 'count')",
+    "code": "\n        function Counter() {\n          const [state, setState] = useState();\n          return <button onClick={() => setState({ count: state.count + 1 })}>Add</button>\n        }\n        ",
+    "goal": "Increment counter on button click",
+    "technology": "React",
+    "emotion": "Frustrated",
+    "timeStuck": 45,
+    "diagnosedCategory": "Conceptual Gap",
+    "confidence": 0.276,
+    "prescription": {
+      "whyStuck": "It's completely understandable to feel frustrated when encountering errors like 'Cannot read properties of undefined,' especially when you're trying to do something seemingly straightforward like incrementing a counter! The root cause here is how you're initializing your component's state. When you call `useState()` without providing any argument, React initializes your `state` variable to `undefined` by default. So, when your button is clicked and you try to access `state.count`, you're essentially trying to read a property (`count`) from `undefined`, which isn't possible and leads to the error you're seeing.",
+      "immediateStep": "The quickest way to fix this is to provide an initial value for your state directly to the `useState` hook. Since you're expecting `state` to be an object with a `count` property, you should initialize it as such. Change your `useState` declaration to include an initial object with `count` set to 0. This ensures that `state` is always an object, even on the very first render, allowing `state.count` to be accessed without error.\n\n```javascript\nconst [state, setState] = useState({ count: 0 });\n```",
+      "studyNext": "To deepen your understanding and prevent similar issues, I recommend studying 'React State Initialization with `useState`'. Focus on understanding how `useState` handles different types of initial values (primitives like numbers/strings versus objects/arrays) and the implications of providing no initial value. Understanding how state is set up from the very beginning of a component's lifecycle is crucial for avoiding these 'undefined' errors.",
+      "prevention": "A great habit to adopt, especially when dealing with state or props, is to always consider and explicitly define the *initial shape and value* of your state variables using `useState`. If you're unsure what a variable's value is at any point, use `console.log()` to inspect it. For example, `console.log('Current state:', state)` inside your component can reveal if `state` is `undefined` or has an unexpected structure, helping you debug issues like this much faster. This simple debugging technique combined with a mindful approach to state initialization will save you a lot of frustration.",
+      "sources": [
+        {
+          "title": "React State Updates are Asynchronous",
+          "source": "react.md"
+        },
+        {
+          "title": "Effect Hook Lifecycles and Cleanup",
+          "source": "react.md"
+        }
+      ]
+    },
+    "timestamp": "2026-06-12T18:40:39.389667+00:00",
+    "_id": "f47489ac-c23e-43b3-a67e-43003e690da6"
+  },
+  {
+    "user_id": "419ca9194df541ca82fdaa07765d4c35",
+    "error": "Type 'string | undefined' is not assignable to type 'string'.\nType 'undefined' is not assignable to type 'string'.ts(2322)",
+    "code": "interface User {\n  id: number;\n  name?: string;\n}\n\nfunction greetUser(user: User) {\n  const username: string = user.name;\n\n  return `Hello ${username}`;\n}",
+    "goal": "Fetching user data from an API and displaying the user's name.",
+    "technology": "React, TypeScript",
+    "emotion": "Confused",
+    "timeStuck": 45,
+    "diagnosedCategory": "Conceptual Gap",
+    "confidence": 0.25,
+    "prescription": {
+      "whyStuck": "It's completely understandable to feel confused when TypeScript throws errors that seem subtle! You're stuck because of a mismatch between what your `User` interface allows for the `name` property and what you're expecting `username` to be. In your `User` interface, `name?: string` means that the `name` property is *optional*. This tells TypeScript that `name` could either be a `string` OR `undefined`. When you then try to assign `user.name` directly to `const username: string`, TypeScript flags an error because `username` is *explicitly* declared as `string` (meaning it *must* be a string and cannot be `undefined`). TypeScript is doing its job by preventing a potential runtime error where you might try to use `username` as a string when it's actually `undefined`, which would likely cause your application to crash.",
+      "immediateStep": "A concrete step you can take right now is to provide a default value for `username` in case `user.name` is `undefined`. This resolves the type mismatch by ensuring `username` is always a `string`. You can modify your `greetUser` function like this:\n\n```typescript\nfunction greetUser(user: User) {\n  const username: string = user.name || 'Guest'; // Provide a default string value\n\n  return `Hello ${username}`;\n}\n```\n\nBy using the `||` (logical OR) operator, if `user.name` is `undefined` (which is a 'falsy' value in JavaScript), `username` will be assigned the string 'Guest' instead. This ensures `username` is always a `string`, satisfying TypeScript.",
+      "studyNext": "To truly plug this conceptual gap, I highly recommend studying 'TypeScript's Type Narrowing and Optional Properties'. Understanding how TypeScript handles optional properties (like `name?: string`) as 'union types' (`string | undefined`) is crucial. Then, delve into 'Type Narrowing', which describes how TypeScript can intelligently deduce a more specific type within conditional blocks (e.g., `if (user.name)` would narrow `user.name` from `string | undefined` to just `string` inside that block). This knowledge will empower you to handle potentially `undefined` values safely and explicitly.",
+      "prevention": "To prevent similar struggles, cultivate a habit of carefully reading TypeScript compiler errors, especially those involving type assignments or 'Type X is not assignable to Type Y'. When you see `undefined` as part of a type (e.g., `string | undefined`), immediately consider how you will *handle* the `undefined` case explicitly. This might involve providing a default value (as shown above), using a conditional check (`if (value !== undefined)`), or asserting non-null (`value!`) only when you are absolutely certain it won't be `undefined`. This proactive mindset of anticipating and handling 'missing' data is key, particularly when dealing with data fetched from APIs.",
+      "sources": [
+        {
+          "title": "Component Re-mounts on Definition",
+          "source": "react.md"
+        },
+        {
+          "title": "React State Updates are Asynchronous",
+          "source": "react.md"
+        }
+      ]
+    },
+    "timestamp": "2026-06-12T19:04:28.598594+00:00",
+    "_id": "8e8cf8d5-88b4-44c6-8a06-13983062f788"
   }
 ]

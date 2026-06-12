@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Code2, Clock, AlertTriangle, Terminal, Play } from 'lucide-react';
+import { Target, Code2, Clock, AlertTriangle, Terminal, Play, Shield, ShieldAlert, Check, X } from 'lucide-react';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const emotions = [
   { value: 'Frustrated', label: 'Frustrated', desc: 'Blocked by stubborn bugs' },
@@ -39,6 +38,9 @@ export default function Diagnose() {
   const [formData, setFormData] = useState(loadDraft);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVPIScanning, setIsVPIScanning] = useState(false);
+  const [vpiScanResult, setVpiScanResult] = useState(null);
+  const [showVPIModal, setShowVPIModal] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [loadingStep, setLoadingStep] = useState(0);
 
@@ -107,15 +109,11 @@ export default function Diagnose() {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
+  const runDiagnosis = async (errorText, codeText) => {
     setIsSubmitting(true);
     setSubmitError('');
     setLoadingStep(0);
 
-    // Simulate loading status updates
     const interval = setInterval(() => {
       setLoadingStep((prev) => {
         if (prev < steps.length - 1) {
@@ -126,20 +124,23 @@ export default function Diagnose() {
     }, 1200);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/diagnose`, {
+      const response = await api.post('/diagnose', {
         goal: formData.goal,
         tech: formData.tech,
         timeStuck: Number(formData.timeStuck),
         emotion: formData.emotion,
-        error: formData.error,
-        code: formData.code
+        error: errorText,
+        code: codeText
       });
 
       clearInterval(interval);
-      // Clear saved draft on successful submission
-      try { localStorage.removeItem(FORM_STORAGE_KEY); } catch {}
+      try {
+        localStorage.removeItem(FORM_STORAGE_KEY);
+      } catch {
+        // ignore storage access errors in some environments
+      }
       setFormData(defaultFormData);
-      // Give a tiny buffer for the transition
+      
       setTimeout(() => {
         navigate('/results', { state: { result: response.data } });
       }, 500);
@@ -151,6 +152,37 @@ export default function Diagnose() {
       setSubmitError(
         err.response?.data?.detail || 'Failed to submit diagnosis. Make sure backend API is running.'
       );
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setSubmitError('');
+    setIsVPIScanning(true);
+
+    try {
+      const vpiRes = await api.post('/vpi/scan', {
+        error: formData.error,
+        code: formData.code
+      });
+
+      setIsVPIScanning(false);
+
+      if (vpiRes.data.is_safe) {
+        // Safe: proceed with original inputs
+        await runDiagnosis(formData.error, formData.code);
+      } else {
+        // Sensitive data detected: show modal for review
+        setVpiScanResult(vpiRes.data);
+        setShowVPIModal(true);
+      }
+    } catch (err) {
+      console.warn("VPI scan failed. Falling back to direct submit.", err);
+      setIsVPIScanning(false);
+      // Degrade gracefully: submit original inputs directly
+      await runDiagnosis(formData.error, formData.code);
     }
   };
 
@@ -182,6 +214,120 @@ export default function Diagnose() {
                 </p>
               </div>
             </div>
+          </motion.div>
+        )}
+
+        {isVPIScanning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[var(--bg-void)]/85 backdrop-blur-sm"
+          >
+            <div className="max-w-md w-full px-6 text-center space-y-4">
+              <Shield className="w-12 h-12 text-[var(--text-muted)] animate-pulse mx-auto" />
+              <div className="space-y-1">
+                <h3 className="text-[14px] font-semibold text-[var(--text-primary)]">VPI Privacy Shield Active</h3>
+                <p className="text-[12px] text-[var(--text-secondary)]">Scanning inputs for credentials and sensitive data...</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {showVPIModal && vpiScanResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-void)]/90 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="max-w-2xl w-full bg-[var(--bg-surface)] border border-[var(--border-muted)] rounded-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+            >
+              {/* Header */}
+              <div className="p-5 border-b border-[var(--border-subtle)] flex items-center justify-between bg-[#12111a]/40">
+                <div className="flex items-center gap-2.5">
+                  <ShieldAlert className="w-5 h-5 text-yellow-500" />
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-[var(--text-primary)]">Privacy Redaction Verification</h3>
+                    <p className="text-[11px] text-[var(--text-muted)] font-mono">Verifiable Private Interface (VPI)</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowVPIModal(false)}
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 overflow-y-auto space-y-5 flex-1">
+                <div className="p-4 rounded bg-yellow-950/10 border border-yellow-900/30 text-[12.5px] text-[var(--text-secondary)] leading-relaxed">
+                  We scanned your inputs and detected credentials or personal information. For your privacy, Code Therapist will automatically redact these details before diagnosing.
+                </div>
+
+                {/* Findings List */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Detected Sensitive Data</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {vpiScanResult.findings.map((finding, idx) => (
+                      <div key={idx} className="p-2.5 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] flex items-center justify-between">
+                        <span className="text-[12px] text-[var(--text-primary)] font-medium">{finding.type}</span>
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-yellow-950/20 text-yellow-400 border border-yellow-900/40">
+                          {finding.count} found
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Redacted Payload Preview */}
+                <div className="space-y-3 pt-2">
+                  <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Sanitized Preview (Verifiable Payload)</span>
+                  
+                  {vpiScanResult.error_redacted !== formData.error && (
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] text-[var(--text-muted)] font-mono">Redacted Error Log:</div>
+                      <pre className="p-3 bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded text-[11px] font-mono text-[var(--text-secondary)] overflow-x-auto max-h-[100px] whitespace-pre-wrap">
+                        {vpiScanResult.error_redacted}
+                      </pre>
+                    </div>
+                  )}
+
+                  {vpiScanResult.code_redacted !== formData.code && (
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] text-[var(--text-muted)] font-mono">Redacted Code Snippet:</div>
+                      <pre className="p-3 bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] rounded text-[11px] font-mono text-[var(--text-secondary)] overflow-x-auto max-h-[140px] whitespace-pre-wrap">
+                        {vpiScanResult.code_redacted}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="p-4 bg-[#12111a]/40 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row gap-3 justify-end">
+                <button
+                  onClick={() => setShowVPIModal(false)}
+                  className="h-9 px-4 rounded-md border border-[var(--border-muted)] bg-[var(--bg-surface)] text-[12px] font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)] transition-all cursor-pointer"
+                >
+                  Cancel & Edit inputs
+                </button>
+                <button
+                  onClick={() => {
+                    setShowVPIModal(false);
+                    runDiagnosis(vpiScanResult.error_redacted, vpiScanResult.code_redacted);
+                  }}
+                  className="h-9 px-4 rounded-md bg-[var(--text-primary)] text-[var(--bg-void)] text-[12px] font-semibold hover:opacity-90 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Confirm & Send Sanitized Data
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

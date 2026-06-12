@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -111,6 +112,15 @@ export default function Results() {
   const location = useLocation();
   const navigate = useNavigate();
   const result = location.state?.result;
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const yAxisWidth = windowWidth < 640 ? 100 : 150;
 
   if (!result) {
     return (
@@ -312,6 +322,33 @@ export default function Results() {
         </div>
       </div>
 
+      {/* Grounded References (RAG) */}
+      {prescription?.sources && prescription.sources.length > 0 && (
+        <motion.div 
+          variants={itemVariants}
+          className="p-5 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-subtle)] border-t border-t-white/[0.03] shadow-md space-y-3"
+        >
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[var(--text-muted)]" />
+            <h3 className="text-[13px] font-mono text-[var(--text-muted)] uppercase tracking-wider">
+              Grounded Reference Documentation
+            </h3>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {prescription.sources.map((src, idx) => (
+              <div 
+                key={idx} 
+                className="flex items-center gap-2 p-2 px-3 rounded bg-[var(--bg-surface-elevated)] border border-[var(--border-subtle)] text-[12px] text-[var(--text-primary)] font-mono"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--border-focus)] shrink-0" />
+                <span>{src.title}</span>
+                <span className="text-[var(--text-muted)] text-[10px] ml-1">({src.source})</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
       {/* Similarity Map Chart */}
       <motion.div 
         variants={itemVariants}
@@ -350,7 +387,7 @@ export default function Results() {
                 fontSize={11}
                 tickLine={false}
                 axisLine={false}
-                width={150}
+                width={yAxisWidth}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.01)' }} />
               <Bar 

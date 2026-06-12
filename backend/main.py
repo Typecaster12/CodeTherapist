@@ -1,8 +1,10 @@
+import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from services.diagnostic_engine import init_engine
+from services.rag_service import init_rag_store
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -14,8 +16,10 @@ async def lifespan(app: FastAPI):
     try:
         init_engine()
         logger.info("Semantic Diagnostic Engine ready.")
+        init_rag_store()
+        logger.info("RAG Document Store ready.")
     except Exception as e:
-        logger.error(f"Failed to initialize Diagnostic Engine: {e}", exc_info=True)
+        logger.error(f"Failed to initialize Diagnostic Engine or RAG: {e}", exc_info=True)
     yield
     logger.info("Shutting down Code Therapist Backend...")
 
@@ -23,12 +27,25 @@ app = FastAPI(title="Code Therapist API", version="1.0.0", lifespan=lifespan)
 
 
 # Configure CORS
+allowed_origins = [
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:5174", "http://127.0.0.1:5174",
+    "http://localhost:5175", "http://127.0.0.1:5175",
+    "http://localhost:5176", "http://127.0.0.1:5176",
+    "http://localhost:5177", "http://127.0.0.1:5177",
+    "http://localhost:5178", "http://127.0.0.1:5178",
+    "http://localhost:5179", "http://127.0.0.1:5179",
+    "http://localhost:5180", "http://127.0.0.1:5180",
+]
+
+env_origins = os.getenv("ALLOWED_ORIGINS")
+if env_origins:
+    additional_origins = [origin.strip() for origin in env_origins.split(",") if origin.strip()]
+    allowed_origins.extend(additional_origins)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173", "http://127.0.0.1:5173",
-        "http://localhost:5174", "http://127.0.0.1:5174"
-    ], # Frontend Dev URLs
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -36,9 +53,13 @@ app.add_middleware(
 
 from routes.diagnose import router as diagnose_router
 from routes.sessions import router as sessions_router
+from routes.auth import router as auth_router
+from routes.vpi import router as vpi_router
 
+app.include_router(auth_router)
 app.include_router(diagnose_router)
 app.include_router(sessions_router)
+app.include_router(vpi_router)
 
 @app.get("/health")
 def health_check():

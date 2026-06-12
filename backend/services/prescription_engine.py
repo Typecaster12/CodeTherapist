@@ -3,6 +3,7 @@ import json
 import logging
 from dotenv import load_dotenv
 import google.generativeai as genai
+from services.rag_service import retrieve_relevant_docs
 
 logger = logging.getLogger("code_therapist")
 
@@ -16,10 +17,18 @@ if api_key:
 else:
     logger.warning("GEMINI_API_KEY environment variable is missing!")
 
-def build_prompt(issue_text: str, category: str, confidence: float, emotion: str, tech: str) -> str:
+def build_prompt(issue_text: str, category: str, confidence: float, emotion: str, tech: str, rag_docs: list = None) -> str:
     """
     Constructs a highly structured clinical prompt for the Gemini model.
     """
+    rag_context = ""
+    if rag_docs:
+        rag_context = "\n[REFERENCE DOCUMENTATION]\n"
+        for doc in rag_docs:
+            rag_context += f"Source File: {doc['source']} | Topic: {doc['title']}\n"
+            rag_context += f"Content:\n{doc['content']}\n---\n"
+        rag_context += "\nInstructions: Use the above reference documentation to ground your explanations and make your prescription highly accurate, using correct names and APIs described in the reference.\n"
+
     return f"""
 You are a "Code Therapist" — an empathetic, expert programming tutor.
 Your patient is a developer who is stuck and experiencing struggle.
@@ -27,7 +36,7 @@ Our semantic diagnostic engine has analyzed their struggle and classified it:
 - Diagnosed Struggle Category: {category} (Similarity Match Confidence: {confidence * 100:.1f}%)
 - User's Emotional State: {emotion}
 - Tech Stack/Framework: {tech}
-
+{rag_context}
 Here is the issue context containing their error details and code snippet:
 \"\"\"
 {issue_text}
@@ -60,9 +69,13 @@ def generate_prescription(issue_text: str, category: str, confidence: float, emo
         logger.error("Cannot call Gemini API: GEMINI_API_KEY is not configured.")
         return get_fallback_prescription(category)
 
+    # Retrieve RAG references
+    rag_docs = retrieve_relevant_docs(issue_text, tech, limit=2)
+    logger.info(f"Retrieved {len(rag_docs)} RAG documents for grounding.")
+
     try:
         model = genai.GenerativeModel("gemini-2.5-flash")
-        prompt = build_prompt(issue_text, category, confidence, emotion, tech)
+        prompt = build_prompt(issue_text, category, confidence, emotion, tech, rag_docs)
         
         # Enforce JSON output mode in Gemini API
         response = model.generate_content(
@@ -87,11 +100,19 @@ def generate_prescription(issue_text: str, category: str, confidence: float, emo
             if key not in prescription:
                 prescription[key] = f"Information under {key} could not be parsed."
                 
+        # Attach the RAG sources
+        prescription["sources"] = [
+            {"title": doc["title"], "source": doc["source"]} for doc in rag_docs
+        ]
         return prescription
 
     except Exception as e:
         logger.error(f"Error calling Gemini or parsing response: {e}", exc_info=True)
-        return get_fallback_prescription(category)
+        fallback = get_fallback_prescription(category)
+        fallback["sources"] = [
+            {"title": doc["title"], "source": doc["source"]} for doc in rag_docs
+        ]
+        return fallback
 
 def get_fallback_prescription(category: str) -> dict:
     """

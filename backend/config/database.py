@@ -14,6 +14,7 @@ MONGO_URI = os.getenv("MONGO_URI")
 client = None
 db = None
 sessions_collection = None
+users_collection = None
 
 if not MONGO_URI:
     logger.warning("MONGO_URI env variable is missing! MongoDB connection not initialized.")
@@ -30,6 +31,7 @@ else:
         logger.info("MongoDB connection established successfully.")
         db = client["code_therapist"]
         sessions_collection = db["sessions"]
+        users_collection = db["users"]
     except Exception as e:
         logger.error(f"MongoDB connection failed: {e}")
 

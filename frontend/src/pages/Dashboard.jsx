@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../utils/api';
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -16,20 +16,15 @@ import {
   CartesianGrid 
 } from 'recharts';
 import { 
-  Activity, 
   Clock, 
   Code2, 
   AlertOctagon, 
-  BookOpen, 
-  HelpCircle,
   Database,
   ArrowRight,
   TrendingUp,
   Inbox
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const CATEGORY_COLORS = {
   "Syntax Error": "#8a8a8a",
@@ -69,8 +64,8 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
         const [sessionsRes, profileRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/sessions?limit=15`),
-          axios.get(`${API_BASE_URL}/sessions/profile`)
+          api.get('/sessions?limit=15'),
+          api.get('/sessions/profile')
         ]);
         setSessions(sessionsRes.data);
         setProfile(profileRes.data);
@@ -96,7 +91,7 @@ export default function Dashboard() {
         hour: '2-digit', 
         minute: '2-digit' 
       });
-    } catch (e) {
+    } catch {
       return isoString;
     }
   };
@@ -483,14 +478,14 @@ export default function Dashboard() {
           </div>
 
           <div className="overflow-x-auto -mx-5">
-            <table className="w-full text-left text-[12px] min-w-[500px]">
+            <table className="w-full text-left text-[12px]">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)] text-[11px] font-mono text-[var(--text-muted)] uppercase bg-[#12111a]/40">
                   <th className="py-2.5 px-5">Timestamp</th>
                   <th className="py-2.5 px-3">Technology</th>
                   <th className="py-2.5 px-3">Struggle Category</th>
-                  <th className="py-2.5 px-3">Confidence</th>
-                  <th className="py-2.5 px-3">Emotion</th>
+                  <th className="py-2.5 px-3 hidden sm:table-cell">Confidence</th>
+                  <th className="py-2.5 px-3 hidden sm:table-cell">Emotion</th>
                   <th className="py-2.5 px-5 text-right">Action</th>
                 </tr>
               </thead>
@@ -509,18 +504,18 @@ export default function Dashboard() {
                     <td className="py-2.5 px-3">
                       <div className="flex items-center gap-1.5">
                         <span 
-                          className="w-1.5 h-1.5 rounded-full shrink-0"
-                          style={{ backgroundColor: CATEGORY_COLORS[session.diagnosedCategory] || "#8b8a96" }}
+                           className="w-1.5 h-1.5 rounded-full shrink-0"
+                           style={{ backgroundColor: CATEGORY_COLORS[session.diagnosedCategory] || "#8b8a96" }}
                         />
                         <span className="text-[var(--text-secondary)] truncate max-w-[120px]">
                           {session.diagnosedCategory}
                         </span>
                       </div>
                     </td>
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-[var(--text-muted)]">
+                    <td className="py-2.5 px-3 font-mono text-[11px] text-[var(--text-muted)] hidden sm:table-cell">
                       {Math.round((session.confidence || 0) * 100)}%
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-2.5 px-3 hidden sm:table-cell">
                       <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#1a1926] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
                         {session.emotion}
                       </span>

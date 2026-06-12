@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
 
 export default function InteractiveBackground() {
@@ -21,15 +21,17 @@ export default function InteractiveBackground() {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
 
-  // Reusable static structure for drifting particles
-  const particles = Array.from({ length: 12 }).map((_, i) => ({
-    id: i,
-    size: Math.random() * 2 + 1,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    duration: Math.random() * 30 + 30, // 30s - 60s
-    delay: -Math.random() * 30,
-  }));
+  // Reusable static structure for drifting particles initialized once on mount
+  const [particles] = useState(() => 
+    Array.from({ length: 12 }).map((_, i) => ({
+      id: i,
+      size: Math.random() * 2 + 1,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      duration: Math.random() * 30 + 30, // 30s - 60s
+      delay: -Math.random() * 30,
+    }))
+  );
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-[var(--bg-void)]">

@@ -51,9 +51,9 @@ def save_session_to_json(doc: dict) -> str:
         logger.error(f"Failed to save session to JSON fallback: {e}")
         return "fallback-mock-id"
 
-def get_all_sessions_from_json(limit: int = 50) -> list:
+def get_all_sessions_from_json(limit: int = 50, user_id: str = None) -> list:
     """
-    Reads sessions from the local JSON file.
+    Reads sessions from the local JSON file, filtered by user_id if provided.
     """
     try:
         ensure_fallback_dir()
@@ -64,6 +64,8 @@ def get_all_sessions_from_json(limit: int = 50) -> list:
                 data = json.load(f)
             except json.JSONDecodeError:
                 data = []
+        if user_id:
+            data = [s for s in data if s.get("user_id") == user_id]
         data.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
         return data[:limit]
     except Exception as e:
@@ -172,9 +174,8 @@ def save_session(session_data: dict) -> str:
     """
     Saves a diagnostic session to MongoDB, or local JSON if MongoDB is unavailable.
     """
-    # Build standard session document structure
     doc = {
-        "userId": session_data.get("userId", "guest"),
+        "user_id": session_data.get("user_id", "guest"),
         "error": session_data.get("error", ""),
         "code": session_data.get("code", ""),
         "goal": session_data.get("goal", ""),
@@ -200,38 +201,40 @@ def save_session(session_data: dict) -> str:
         logger.error(f"MongoDB save failed: {e}. Falling back to local JSON.", exc_info=True)
         return save_session_to_json(doc)
 
-def get_all_sessions(limit: int = 50) -> list:
+def get_all_sessions(limit: int = 50, user_id: str = None) -> list:
     """
-    Retrieves all historical sessions from MongoDB or local JSON.
+    Retrieves sessions for a specific user from MongoDB or local JSON.
     """
     if sessions_collection is None:
         logger.warning("MongoDB is unavailable. Fetching sessions from local JSON.")
-        return get_all_sessions_from_json(limit)
+        return get_all_sessions_from_json(limit, user_id=user_id)
         
     try:
-        cursor = sessions_collection.find().sort("timestamp", -1).limit(limit)
+        query = {"user_id": user_id} if user_id else {}
+        cursor = sessions_collection.find(query).sort("timestamp", -1).limit(limit)
         return [serialize_doc(doc) for doc in cursor]
     except Exception as e:
         logger.error(f"MongoDB fetch failed: {e}. Falling back to local JSON.", exc_info=True)
-        return get_all_sessions_from_json(limit)
+        return get_all_sessions_from_json(limit, user_id=user_id)
 
-def get_learning_profile() -> dict:
+def get_learning_profile(user_id: str = None) -> dict:
     """
-    Retrieves aggregated learning statistics from MongoDB or local JSON.
+    Retrieves aggregated learning statistics for a specific user.
     """
     if sessions_collection is None:
         logger.warning("MongoDB is unavailable. Compiling learning profile from local JSON.")
-        local_sessions = get_all_sessions_from_json(limit=1000)
+        local_sessions = get_all_sessions_from_json(limit=1000, user_id=user_id)
         return get_learning_profile_from_json(local_sessions)
         
     try:
-        # Check if we have any sessions at all
-        total_sessions = sessions_collection.count_documents({})
+        query = {"user_id": user_id} if user_id else {}
+        total_sessions = sessions_collection.count_documents(query)
         if total_sessions == 0:
             return get_default_profile()
 
         # Calculate average time stuck
         avg_pipeline = [
+            {"$match": query},
             {"$group": {"_id": None, "avgTime": {"$avg": "$timeStuck"}}}
         ]
         avg_res = list(sessions_collection.aggregate(avg_pipeline))
@@ -239,6 +242,7 @@ def get_learning_profile() -> dict:
 
         # Category distribution
         cat_pipeline = [
+            {"$match": query},
             {"$group": {"_id": "$diagnosedCategory", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}}
         ]
@@ -247,6 +251,7 @@ def get_learning_profile() -> dict:
 
         # Technology distribution
         tech_pipeline = [
+            {"$match": query},
             {"$group": {"_id": "$technology", "count": {"$sum": 1}}},
             {"$sort": {"count": -1}}
         ]
@@ -255,6 +260,7 @@ def get_learning_profile() -> dict:
 
         # Average time stuck per category
         avg_by_cat_pipeline = [
+            {"$match": query},
             {"$group": {"_id": "$diagnosedCategory", "avgTimeStuck": {"$avg": "$timeStuck"}}},
             {"$sort": {"avgTimeStuck": -1}}
         ]
@@ -263,6 +269,7 @@ def get_learning_profile() -> dict:
 
         # Weekly trends
         weekly_pipeline = [
+            {"$match": query},
             {
                 "$project": {
                     "week": {
@@ -300,7 +307,7 @@ def get_learning_profile() -> dict:
         }
     except Exception as e:
         logger.error(f"MongoDB aggregation failed: {e}. Falling back to local JSON compilation.", exc_info=True)
-        local_sessions = get_all_sessions_from_json(limit=1000)
+        local_sessions = get_all_sessions_from_json(limit=1000, user_id=user_id)
         return get_learning_profile_from_json(local_sessions)
 
 def get_default_profile() -> dict:

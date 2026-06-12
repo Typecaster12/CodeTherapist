@@ -41,6 +41,53 @@
 - **F11.1 to F11.5 (Deployment)**: Configured the frontend with environment variables to dynamically reference backend API hosting services (`VITE_API_URL`) while defaulting to `http://localhost:8000` locally. Created a comprehensive root [README.md](file:///c:/Users/Harsh%20Mishra/OneDrive/Desktop/Codes/Hackathons/CodeTherapist/README.md) containing the product description, core capabilities, setup processes, environment configuration parameters, and execution instructions for the hackathon final presentation.
 
 
+## FORM STATE CACHING — localStorage Persistence
+- **Input Draft Persistence**: Implemented `localStorage`-based form state caching in `Diagnose.jsx`. On every keystroke, form state is written to `localStorage` under key `code_therapist_diagnose_draft`. On component mount, state is restored from localStorage using a lazy `useState` initializer (`loadDraft()`). The draft is only cleared when the user successfully submits a diagnosis (navigates to `/results`) — not on navigation or page refresh. This prevents the frustrating UX of losing typed content when switching pages.
 
+## FEATURE 12 — JWT Authentication (Post-MVP Extension)
+> Note: `context.md` originally listed Auth as "Do Not Build" for the hackathon MVP. The user explicitly requested this feature as a post-MVP extension. This deviation is documented here per Rule 1 exception policy.
+
+- **Backend Dependencies**: Installed `python-jose[cryptography]`, `passlib[bcrypt]` (pinned to `bcrypt==4.0.1` for passlib 1.7.4 compatibility), and `email-validator` into the backend venv.
+  > **Rule 1 Exception**: `pip` was used (not `bun`) for backend Python packages. This is expected — `bun` is only for frontend JavaScript. Backend package manager is `pip` within the venv.
+- **JWT Env Variables**: Added `JWT_SECRET`, `JWT_ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` to `backend/.env`.
+- **User Model** (`backend/models/user.py`): Created Pydantic models: `UserRegister`, `UserLogin`, `TokenResponse`, `UserOut`.
+- **Auth Service** (`backend/services/auth_service.py`): Implemented bcrypt password hashing/verification, JWT access token (30 min TTL) and refresh token (7 day TTL) creation, token decoding, and `get_current_user` FastAPI dependency.
+- **Auth Routes** (`backend/routes/auth.py`): Implemented `POST /auth/register` (201), `POST /auth/login` (200), `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`. Includes MongoDB + in-memory fallback storage for users.
+- **Database Config** (`backend/config/database.py`): Added `users_collection` alongside existing `sessions_collection`.
+- **Protected Diagnose Endpoint** (`backend/routes/diagnose.py`): Added `Depends(get_current_user)` to `POST /diagnose`. User ID is now saved with each session.
+- **Frontend Auth Context** (`frontend/src/context/AuthContext.jsx`): React Context exposing `{ user, token, isAuthenticated, isLoading, login, register, logout }`. Bootstraps from localStorage on mount with automatic refresh-cookie fallback. `logout()` clears both the access token and the form draft.
+- **Protected Route Guard** (`frontend/src/components/ProtectedRoute.jsx`): Shows spinner while auth state loads, redirects to `/login` if unauthenticated.
+- **Central API Utility** (`frontend/src/utils/api.js`): Axios instance with automatic Bearer token injection (request interceptor) and silent 401→refresh→retry logic with request queuing.
+- **Login Page** (`frontend/src/pages/Login.jsx`): Email + Password form matching DESIGN.md monochrome theme. Redirects back to the originally requested page after login.
+- **Register Page** (`frontend/src/pages/Register.jsx`): Username + Email + Password + Confirm Password form with client-side validation.
+- **App.jsx Updated**: Wrapped in `<AuthProvider>`. `/login` and `/register` added as public routes. `/diagnose`, `/results`, `/dashboard` nested under `<ProtectedRoute>`.
+- **Layout.jsx Updated**: Navbar dynamically shows `username + Logout` when authenticated, and `Login / Register` buttons when logged out.
+- **Diagnose.jsx Updated**: Switched from raw `axios` to central `api` utility for automatic token injection.
+- **Tested (Rule 2 ✅)**: Via Swagger UI — register (201), login (200), /me (200), duplicate email (409 conflict). All backend routes verified live.
+
+## FORM STATE CACHING — localStorage Persistence
+- **Input Draft Persistence**: Implemented `localStorage`-based form state caching in `Diagnose.jsx` to prevent input data loss on route switches or page refreshes.
+
+## FEATURE 13 — Verifiable Private Interface (VPI)
+- **Regex Privacy Scanner** (`backend/services/vpi_service.py`): Scans input strings for secrets (AWS, Google, GitHub, Stripe, Slack, generic passwords), database credentials, and PII (IPs, email).
+- **Scanner Endpoint** (`backend/routes/vpi.py`): Exposes `POST /vpi/scan` validation route.
+- **Frontend Verification Modal** (`frontend/src/pages/Diagnose.jsx`): Intercepts diagnoses containing secrets to show matches and redacted previews, allowing user verification and approval.
+
+## FEATURE 14 — Retrieval-Augmented Generation (RAG)
+- **Local Reference Manuals**: Curated Markdown guides under `backend/data/docs/` for React, FastAPI, MongoDB, Python, and JavaScript.
+- **Vector Search Engine** (`backend/services/rag_service.py`): Splits markdown, pre-computes embeddings during server lifespan hooks, and retrieves tech-scoped matches using cosine similarity.
+- **AI Prescription Integration**: Injected retrieved reference chunks in `prescription_engine.py` to ground Gemini prompts. Added dynamic sources card in `Results.jsx`.
+
+## FEATURE 15 — Mobile Responsiveness & Hamburger Navigation
+- **Hamburger Navigation Toggle** (`Layout.jsx`): Added a responsive Lucide hamburger and dropdown drawer for smaller viewports.
+- **Fluid Layout Adjustments**: Wrapped long code/prescription block outputs, added dynamic chart widths for Recharts in `Results.jsx`, and hid auxiliary columns in `Dashboard.jsx` logs table on mobile.
+
+## FEATURE 16 — Deployment Readiness Verification
+- **Dynamic CORS Support** (`backend/main.py`): Modified CORS configurations to dynamically load allowed origins from an `ALLOWED_ORIGINS` environment variable in production.
+- **Backend Dependency Freeze** (`backend/requirements.txt`): Lock-packaged all requirements (FastAPI, sentence-transformers, pymongo, certifi, python-jose, passlib, bcrypt==4.0.1, etc.) in a production-ready file to prevent Render execution conflicts.
+- **Vercel SPA Redirect Config** (`frontend/vercel.json`): Wrote Vercel Edge configuration to rewrite all routes back to `index.html` to prevent route-reload `404` errors.
+- **Frontend Code Quality Verification**: Ran `bun run lint` successfully with zero ESLint compilation errors or purity warnings.
+- **Frontend Build Compilation**: Executed `bun run build` successfully, producing a fully minified, production-ready React client bundle in the `dist/` directory.
+- **Backend Startup Verification**: Executed mock import startup inside the production python venv virtual environment, confirming correct execution, module resolutions, and environment compatibility.
 
 

@@ -221,4 +221,47 @@
 | F9 | Analytics Dashboard (Frontend) | 9 tasks |
 | F10 | Polish & Integration Testing | 8 tasks |
 | F11 | Deployment | 5 tasks |
-| **Total** | | **82 tasks** |
+| F12 | JWT Authentication (Post-MVP) | 14 tasks |
+| F13 | Form State Caching | 1 task |
+| **Total** | | **97 tasks** |
+
+---
+
+---
+
+## FEATURE 12 — JWT Authentication (Post-MVP Extension)
+
+> ⚠️ This feature was NOT in the original MVP scope (`context.md` Section "Do NOT Build"). Added per explicit user request as a post-MVP extension.
+
+### Backend
+- [x] F12.1 — Install `python-jose[cryptography]`, `passlib[bcrypt]`, `email-validator`
+- [x] F12.2 — Add JWT config variables to `.env` (`JWT_SECRET`, `JWT_ALGORITHM`, TTL settings)
+- [x] F12.3 — Add `users_collection` to `config/database.py`
+- [x] F12.4 — Create `models/user.py` (UserRegister, UserLogin, TokenResponse, UserOut)
+- [x] F12.5 — Create `services/auth_service.py` (hashing, token creation, `get_current_user` dependency)
+- [x] F12.6 — Create `routes/auth.py` (register, login, refresh, logout, /me)
+- [x] F12.7 — Register auth router in `main.py`
+- [x] F12.8 — Protect `POST /diagnose` with `Depends(get_current_user)`, save `user_id` in session
+
+### Frontend
+- [x] F12.9 — Create `context/AuthContext.jsx` (token state, login/logout/register, refresh-on-401)
+- [x] F12.10 — Create `components/ProtectedRoute.jsx` (spinner + redirect guard)
+- [x] F12.11 — Create `utils/api.js` (axios instance with auth interceptors)
+- [x] F12.12 — Create `pages/Login.jsx` (DESIGN.md-compliant login form)
+- [x] F12.13 — Create `pages/Register.jsx` (username/email/password/confirm form)
+- [x] F12.14 — Update `App.jsx` (AuthProvider, ProtectedRoute, /login /register routes)
+- [x] F12.15 — Update `Layout.jsx` (dynamic navbar: username+logout vs login/register)
+- [x] F12.16 — Update `Diagnose.jsx` (switch from raw axios to central `api` utility)
+
+**✅ Tested (Rule 2)**: Swagger UI verification — register 201, login 200, /me 200, duplicate 409 Conflict.
+
+---
+
+---
+
+## FEATURE 13 — Form State Caching (localStorage)
+
+- [x] F13.1 — Add `localStorage` draft persistence to `Diagnose.jsx` (read on mount, write on change, clear on successful submit, clear on logout)
+
+**✅ Tested**: Navigate away mid-form and return — inputs preserved. Submit successfully — inputs cleared.
+
