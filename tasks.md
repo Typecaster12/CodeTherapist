@@ -64,13 +64,13 @@
 
 ## FEATURE 3 — Diagnose Form (Frontend) [Anuj]
 
-- [ ] F3.1 — Build the Diagnose Form page at `/diagnose`
-- [ ] F3.2 — Form fields: Error Message (textarea), Code Snippet (code textarea), Goal (text), Technology (text/select), Time Stuck (number input, in minutes), Emotional State (select: Frustrated / Confused / Overwhelmed / Anxious / Calm)
-- [ ] F3.3 — Add client-side validation (required fields, min length)
-- [ ] F3.4 — Add loading state on form submit
-- [ ] F3.5 — On submit, POST to backend `/diagnose` endpoint
-- [ ] F3.6 — On success, navigate to `/results` with diagnosis data
-- [ ] F3.7 — On error, show user-friendly error message
+- [x] F3.1 — Build the Diagnose Form page at `/diagnose`
+- [x] F3.2 — Form fields: Error Message (textarea), Code Snippet (code textarea), Goal (text), Technology (text/select), Time Stuck (number input, in minutes), Emotional State (select: Frustrated / Confused / Overwhelmed / Anxious / Calm)
+- [x] F3.3 — Add client-side validation (required fields, min length)
+- [x] F3.4 — Add loading state on form submit
+- [x] F3.5 — On submit, POST to backend `/diagnose` endpoint
+- [x] F3.6 — On success, navigate to `/results` with diagnosis data
+- [x] F3.7 — On error, show user-friendly error message
 
 **✅ Test**: Form submits correctly, validation works, loading state shows, navigation to results happens on success.
 
@@ -80,14 +80,14 @@
 
 ## FEATURE 4 — Semantic Diagnostic Engine (Backend) [Harsh]
 
-- [ ] F4.1 — Define the 8 struggle categories with detailed descriptions in `services/diagnostic_engine.py`
-- [ ] F4.2 — Load `all-MiniLM-L6-v2` model using `sentence-transformers` on startup
-- [ ] F4.3 — Pre-compute and cache category embeddings in memory at startup
-- [ ] F4.4 — Write function `build_issue_text(payload)` to combine all form fields into one string
-- [ ] F4.5 — Write function `encode_issue(issue_text)` to compute issue embedding
-- [ ] F4.6 — Write function `classify_issue(issue_embedding)` to compute cosine similarity against all category embeddings
-- [ ] F4.7 — Return top category + confidence score + full similarity map
-- [ ] F4.8 — Write unit test: submit a test issue, verify correct top category is returned
+- [x] F4.1 — Define the 8 struggle categories with detailed descriptions in `services/diagnostic_engine.py`
+- [x] F4.2 — Load `all-MiniLM-L6-v2` model using `sentence-transformers` on startup
+- [x] F4.3 — Pre-compute and cache category embeddings in memory at startup
+- [x] F4.4 — Write function `build_issue_text(payload)` to combine all form fields into one string
+- [x] F4.5 — Write function `encode_issue(issue_text)` to compute issue embedding
+- [x] F4.6 — Write function `classify_issue(issue_embedding)` to compute cosine similarity against all category embeddings
+- [x] F4.7 — Return top category + confidence score + full similarity map
+- [x] F4.8 — Write unit test: submit a test issue, verify correct top category is returned
 
 **✅ Test**: Call diagnostic engine directly with a sample payload, verify it returns correct `diagnosis` and `confidence` without using Gemini or hardcoded rules.
 
