@@ -1,8 +1,7 @@
 import os
 import re
 import logging
-from sentence_transformers import util
-from services.diagnostic_engine import get_engine
+from services.diagnostic_engine import get_engine, get_embedding, cosine_similarity
 
 logger = logging.getLogger("code_therapist")
 
@@ -82,8 +81,8 @@ def init_rag_store():
 
     # Pre-compute embeddings
     engine = get_engine()
-    if engine.model is None:
-        logger.warning("Diagnostic engine model not loaded yet. Delaying RAG embeddings.")
+    if not engine.initialized:
+        logger.warning("Diagnostic engine categories not initialized yet. Delaying RAG embeddings.")
         return
 
     count = 0
@@ -91,7 +90,7 @@ def init_rag_store():
         try:
             # Embed both title and content for better match signals
             text_to_embed = f"{chunk.title}\n{chunk.content}"
-            chunk.embedding = engine.model.encode(text_to_embed, convert_to_tensor=True)
+            chunk.embedding = get_embedding(text_to_embed, task_type="retrieval_document")
             count += 1
         except Exception as e:
             logger.error(f"Failed to embed chunk '{chunk.title}' from {chunk.source}: {e}")
@@ -127,7 +126,7 @@ def retrieve_relevant_docs(query_text: str, tech_input: str, limit: int = 2) -> 
     Returns a list of matching chunks with source reference and similarity score.
     """
     engine = get_engine()
-    if engine.model is None or not _chunks:
+    if not engine.initialized or not _chunks:
         return []
 
     target_tech = match_technology(tech_input)
@@ -144,13 +143,13 @@ def retrieve_relevant_docs(query_text: str, tech_input: str, limit: int = 2) -> 
 
     try:
         # Encode query
-        query_emb = engine.model.encode(query_text, convert_to_tensor=True)
+        query_emb = get_embedding(query_text, task_type="retrieval_query")
 
         scored_chunks = []
         for chunk in filtered_chunks:
             if chunk.embedding is None:
                 continue
-            sim = util.cos_sim(query_emb, chunk.embedding).item()
+            sim = cosine_similarity(query_emb, chunk.embedding)
             scored_chunks.append((chunk, float(sim)))
 
         # Sort by similarity descending

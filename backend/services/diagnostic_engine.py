@@ -1,7 +1,16 @@
+import os
+import math
 import logging
-from sentence_transformers import SentenceTransformer, util
+from dotenv import load_dotenv
+import google.generativeai as genai
 
 logger = logging.getLogger("code_therapist")
+
+# Load environment variables
+load_dotenv()
+api_key = os.getenv("GEMINI_API_KEY")
+if api_key:
+    genai.configure(api_key=api_key)
 
 CATEGORIES = {
     "Syntax Error": (
@@ -44,21 +53,48 @@ CATEGORIES = {
     )
 }
 
+def get_embedding(text: str, task_type: str = "retrieval_document") -> list[float]:
+    """
+    Generates a lightweight vector embedding using Gemini API's gemini-embedding-2 model.
+    """
+    if not api_key:
+        logger.warning("GEMINI_API_KEY environment variable is missing. Cannot fetch real embeddings.")
+        return [0.0] * 3072
+    try:
+        response = genai.embed_content(
+            model="models/gemini-embedding-2",
+            content=text,
+            task_type=task_type
+        )
+        return response['embedding']
+    except Exception as e:
+        logger.error(f"Error generating embedding via Gemini API: {e}")
+        return [0.0] * 3072
+
+def cosine_similarity(v1: list[float], v2: list[float]) -> float:
+    """
+    Computes cosine similarity between two lists of floats in pure Python.
+    """
+    dot_product = sum(a * b for a, b in zip(v1, v2))
+    norm_v1 = math.sqrt(sum(a * a for a in v1))
+    norm_v2 = math.sqrt(sum(a * a for a in v2))
+    if norm_v1 == 0.0 or norm_v2 == 0.0:
+        return 0.0
+    return dot_product / (norm_v1 * norm_v2)
+
 class DiagnosticEngine:
     def __init__(self):
-        self.model = None
+        self.initialized = False
         self.category_embeddings = {}
 
     def load_model(self):
-        if self.model is None:
-            logger.info("Loading SentenceTransformer model 'all-MiniLM-L6-v2'...")
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
-            logger.info("Model loaded successfully. Pre-computing category embeddings...")
-            
+        if not self.initialized:
+            logger.info("Initializing DiagnosticEngine categories using Gemini Embeddings...")
             # Compute embeddings for all categories
             for cat, desc in CATEGORIES.items():
-                self.category_embeddings[cat] = self.model.encode(desc, convert_to_tensor=True)
-            logger.info("Category embeddings cached successfully.")
+                self.category_embeddings[cat] = get_embedding(desc, task_type="retrieval_document")
+            self.initialized = True
+            logger.info("Category embeddings cached successfully using Gemini text-embedding-004.")
 
 # Global engine instance
 _engine = DiagnosticEngine()
@@ -81,7 +117,7 @@ def build_issue_text(payload: dict) -> str:
     time_stuck = payload.get("timeStuck", 0)
 
     parts = []
-    # Place critical technical signals first to avoid model token truncation (max 256 tokens)
+    # Place critical technical signals first to avoid model token truncation
     if error:
         parts.append(f"Error Message:\n{error}")
     if code:
@@ -103,16 +139,16 @@ def classify_issue(issue_text: str) -> dict:
     Encodes the issue text and computes similarity against cached categories.
     """
     engine = get_engine()
-    if engine.model is None:
-        raise RuntimeError("Diagnostic engine model is not loaded. Call init_engine() first.")
+    if not engine.initialized:
+        raise RuntimeError("Diagnostic engine is not initialized. Call init_engine() first.")
 
     # Encode issue
-    issue_emb = engine.model.encode(issue_text, convert_to_tensor=True)
+    issue_emb = get_embedding(issue_text, task_type="retrieval_query")
 
     # Compute similarities
     similarity_map = {}
     for cat, cat_emb in engine.category_embeddings.items():
-        sim = util.cos_sim(issue_emb, cat_emb).item()
+        sim = cosine_similarity(issue_emb, cat_emb)
         # Ensure similarity score is a clean float in range [0, 1]
         similarity_map[cat] = round(max(0.0, float(sim)), 4)
 
